@@ -2150,6 +2150,11 @@ void SetupLock() {
 
     // Draw frame background
     ImU32 f_bg_color = GetStyleColorU32(ImPlot3DCol_FrameBg);
+    // If the plot is hovered, use ImGui's hovered color, ImPlot3DCol_FrameBgHovered
+    if (plot.Hovered) {
+        // TODO: Add ImPlot3DCol_FrameBgHovered to the ImPlot3D style
+        f_bg_color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
+    }
     draw_list->AddRectFilled(plot.FrameRect.Min, plot.FrameRect.Max, f_bg_color);
 
     // Compute canvas/canvas rectangle
