@@ -1813,10 +1813,6 @@ void HandleInput(ImPlot3DPlot& plot) {
     ImGui::SetItemAllowOverlap(); // Handled by ButtonBehavior()
 #endif
 
-    // State
-    const ImVec2 rot_drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-    const bool rotating = ImLengthSqr(rot_drag) > MOUSE_CURSOR_DRAG_THRESHOLD;
-
     // Check if any axis/plane is hovered
     const ImPlot3DQuat& rotation = plot.Rotation;
     ImPlot3DPoint range_min = plot.RangeMin();
@@ -1836,6 +1832,20 @@ void HandleInput(ImPlot3DPlot& plot) {
         hovered_plane_idx = -1;
         hovered_plane = -1;
     }
+
+    // State
+    static int rot_button = -1;
+    // If no mouse button is down, use hover state to determine rotation button
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
+        !ImGui::IsMouseDown(ImGuiMouseButton_Right) &&
+        !ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+        if (hovered_plane != -1 || hovered_axis != -1)
+            rot_button = ImGuiMouseButton_Right;
+        else
+            rot_button = ImGuiMouseButton_Left;
+    }
+    const ImVec2 rot_drag = ImGui::GetMouseDragDelta(rot_button);
+    const bool rotating = ImLengthSqr(rot_drag) > MOUSE_CURSOR_DRAG_THRESHOLD;
 
     // If the user is no longer pressing the translation/zoom buttons, set axes as not held
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
@@ -1892,7 +1902,7 @@ void HandleInput(ImPlot3DPlot& plot) {
         }
 
     // Handle translation with right mouse button
-    if (plot.Held && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    if (plot.Held && ImGui::IsMouseDown(ImGuiMouseButton_Left) && rot_button != ImGuiMouseButton_Left) {
         ImVec2 delta(IO.MouseDelta.x, IO.MouseDelta.y);
 
         if (plot.Axes[0].Hovered && plot.Axes[1].Hovered && plot.Axes[2].Hovered) {
@@ -1962,7 +1972,7 @@ void HandleInput(ImPlot3DPlot& plot) {
         plot.ContextClick = false;
 
     // Handle reset rotation with left mouse double click
-    if (plot.Held && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Right)) {
+    if (plot.Held && ImGui::IsMouseDoubleClicked(rot_button)) {
         plot.RotationAnimationEnd = plot.Rotation;
 
         // Calculate rotation to align the z-axis with the camera direction
@@ -2026,7 +2036,7 @@ void HandleInput(ImPlot3DPlot& plot) {
     }
 
     // Handle rotation with left mouse dragging
-    if (plot.Held && ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    if (plot.Held && ImGui::IsMouseDown(rot_button)) {
         ImVec2 delta(IO.MouseDelta.x, IO.MouseDelta.y);
 
         // Map delta to rotation angles (in radians)
