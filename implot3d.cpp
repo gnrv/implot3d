@@ -1844,7 +1844,7 @@ void HandleInput(ImPlot3DPlot& plot) {
         else
             rot_button = ImGuiMouseButton_Left;
     }
-    const ImVec2 rot_drag = ImGui::GetMouseDragDelta(rot_button);
+    const ImVec2 rot_drag = rot_button >= 0 ? ImGui::GetMouseDragDelta(rot_button) : ImVec2(0.0f, 0.0f);
     const bool rotating = ImLengthSqr(rot_drag) > MOUSE_CURSOR_DRAG_THRESHOLD;
 
     // If the user is no longer pressing the translation/zoom buttons, set axes as not held
